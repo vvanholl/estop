@@ -47,7 +47,7 @@ class ESTopTaskPopUp(urwid.WidgetWrap):
 			footer=urwid.AttrWrap(self.txt_footer, 'footer')
 		)
 
-		self.__super.__init__(urwid.AttrWrap(self.frm_main, 'title'))
+		self.__super.__init__(urwid.LineBox(urwid.AttrWrap(self.frm_main, 'title')))
 
 	def keypress(self, size, key):
 		key = self.__super.keypress(size, key)
@@ -72,7 +72,7 @@ class ESTopTaskPopUpLauncher(urwid.PopUpLauncher):
 		return ESTopTaskPopUp(self, self.task)
 
 	def get_pop_up_parameters(self):
-		return {'left':0, 'top':0, 'overlay_width':80, 'overlay_height':25}
+		return {'left':0, 'top':0, 'overlay_width':76, 'overlay_height':24}
 
 class ESTopViewTaskWidget(urwid.TreeWidget):
 	def __init__(self, node):
