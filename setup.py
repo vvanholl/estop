@@ -38,7 +38,7 @@ scripts = [
 setup(
     name='estop',
     version=version,
-    description='Monitor ElasticSearch Tasks',
+    description='Monitor and control Elasticsearch tasks',
     long_description=long_description,
     url='https://github.com/vvanholl/estop',
     author='Vincent Van Hollebeke',

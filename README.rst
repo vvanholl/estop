@@ -5,7 +5,7 @@
 ESTop
 ================
 
-Monitor ElasticSearch Tasks
+Monitor and control Elasticsearch tasks
 
 Requirements
 ------------

@@ -9,6 +9,7 @@ clean:
 	find . -name 'dist' -type d -exec rm -r "{}" + && \
 	find . -name 'build' -type d -exec rm -r "{}" + && \
 	find . -name '__pycache__' -type d -exec rm -r "{}" + && \
+	find . -name '.pytest_cache' -type d -exec rm -r "{}" + && \
 	pipenv uninstall --all
 
 install-deps:
@@ -27,16 +28,13 @@ lint: build-dev
 	$(info ===== lint =====)
 	pipenv run flake8 .
 
-test:
+test: build-dev
 	$(info ===== test =====)
-	pipenv run pytest -c pytest.ini -s --junitxml=./test-report.xml --cov-append ./tests/ --cov-report html:./cov_html
+	pipenv run pytest -c pytest.ini -s --junitxml=./test-report.xml --cov=estop --cov-append ./tests/ --cov-report html:./cov_html
 
+tests: lint test
 
-
-tests: build-dev lint test
-
-unit-tests: build-dev test
-
+unit-tests: test
 
 view-cov:
 ifeq ($(shell uname -s),Darwin)
@@ -44,11 +42,6 @@ ifeq ($(shell uname -s),Darwin)
 else
 	xdg-open cov_html/index.html
 endif
-
-run: build-dev
-	git update-index --assume-unchanged dev.py
-	$(info ===== run dev.py =====)
-	pipenv run "python dev.py"
 
 publish:
 	$(info ===== publish =====)
@@ -66,4 +59,4 @@ endif
 	TWINE_PASSWORD=$(REPOSITORY_PASSWORD) \
 	pipenv run "twine upload dist/*"
 
-.PHONY: clean tests
+.PHONY: all clean build tests unit-tests publish

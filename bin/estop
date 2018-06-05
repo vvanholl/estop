@@ -3,17 +3,27 @@
 import argparse
 
 from estop.cli.controller import ESTopController
-    
-    
+
+
 def main():
-    parser = argparse.ArgumentParser(description='ESTop : Elasticsearch task monitor',
-                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('-e', '--endpoint', action='store', dest='endpoint', default='http://127.0.0.1:9200',
-                        help='Elasticsearch endpoint')
+    parser = argparse.ArgumentParser(
+        description='ESTop : Elasticsearch task monitor',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
+
+    parser.add_argument(
+        '-e', '--endpoint',
+        action='store',
+        dest='endpoint',
+        default='http://127.0.0.1:9200',
+        help='Elasticsearch endpoint'
+    )
+
     args = parser.parse_args()
 
-    ctlr = ESTopController(args.endpoint)
-    ctlr.main()
+    controller = ESTopController(args.endpoint)
+    controller.main()
+
 
 if __name__ == '__main__':
     main()
