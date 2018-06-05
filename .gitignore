@@ -5,3 +5,14 @@
 build/
 dist/
 *.egg-info/
+
+# Caches
+__pycache__
+.pytest_cache
+
+# Tests
+test-report.xml
+
+# Code coverage
+cov_html
+.coverage

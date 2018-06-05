@@ -1,34 +1,44 @@
 import urwid
 
-from estop.lib.poller import ESTopPoller
-from estop.cli.view import ESTopView
+from estop.lib.connector import Connector
+from estop.cli.view import View, PALETTE, MODE_PLAY, MODE_PAUSE
 
 
-class ESTopController:
+class Controller:
     def __init__(self, endpoint):
-        self.poller = ESTopPoller(endpoint)
-        self.view = ESTopView(self)
+        self.connector = Connector(endpoint)
+        self.view = View(self)
 
-        self.view.set_mode('pause')
         self.play_alarm = None
 
+        self.loop = urwid.MainLoop(
+            self.view.view,
+            PALETTE,
+            unhandled_input=self.view.unhandled_input,
+            pop_ups=True
+        )
+
     def main(self):
-        self.loop = urwid.MainLoop(self.view.view, self.view.palette,
-                                   unhandled_input=self.view.unhandled_input,
-                                   pop_ups=True
-                                   )
         self.play_pause()
         self.loop.run()
 
+    def quit(self):
+        raise urwid.ExitMainLoop()
+
     def play_pause(self):
         if self.play_alarm:
-            self.view.set_mode('pause')
+            self.view.set_mode(MODE_PAUSE)
             self.loop.remove_alarm(self.play_alarm)
             self.play_alarm = None
         else:
-            self.view.set_mode('play')
+            self.view.set_mode(MODE_PLAY)
             self.play_function()
 
     def play_function(self, loop=None, user_data=None):
+        self.connector.fetch_cluster_info()
+        self.connector.fetch_cluster_health()
+        self.connector.fetch_nodes()
+        self.connector.fetch_tasks()
+
         self.view.refresh()
-        self.play_alarm = self.loop.set_alarm_in(1, self.play_function)
+        self.play_alarm = self.loop.set_alarm_in(self.view.refresh_time, self.play_function)

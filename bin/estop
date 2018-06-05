@@ -2,7 +2,7 @@
 
 import argparse
 
-from estop.cli.controller import ESTopController
+from estop.cli.controller import Controller
 
 
 def main():
@@ -21,7 +21,7 @@ def main():
 
     args = parser.parse_args()
 
-    controller = ESTopController(args.endpoint)
+    controller = Controller(args.endpoint)
     controller.main()
 
 
