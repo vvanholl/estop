@@ -36,7 +36,7 @@ class View:
         self.set_mode(MODE_PAUSE)
 
     def __init_widgets(self):
-        #  HEADER
+        # header content
         self.txt_title = urwid.Text(('title', 'ESTop'))
 
         self.txt_mode = urwid.Text('', align='center')
@@ -60,26 +60,26 @@ class View:
             ]
         )
 
-        # MAIN
+        # main content
         self.txt_body = urwid.Text('')
         self.fil_body = urwid.Filler(self.txt_body)
 
-        #  FOOTER
+        # footer content
         self.txt_footer = urwid.Text(
             [
                 ('key', "P to Play/Pause"),
                 ' | ',
-                ('key', "+/- to Fold/Unfold"),
+                ('key', "Enter to Fold/Unfold"),
                 ' | ',
-                ('key', "Enter for detail"),
+                ('key', "D to detail"),
                 ' | ',
-                ('key', "C to cancel task"),
+                ('key', "C to cancel"),
                 ' | ',
                 ('key', "Q to quit")
             ]
         )
 
-        #  FRAME
+        # frame content
         self.frm_main = urwid.Frame(
             urwid.AttrWrap(self.fil_body, 'body'),
             header=urwid.AttrWrap(self.col_header, 'head'),

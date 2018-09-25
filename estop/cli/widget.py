@@ -9,31 +9,43 @@ class TaskWidget(urwid.TreeWidget):
         self.controller = controller
         self.task = node.get_value()
 
+        self.expanded_icon = urwid.AttrWrap(urwid.Text('-'), None)
+        self.expanded_icon.attr = 'body'
+        self.expanded_icon.focus_attr = 'focus'
+
+        self.unexpanded_icon = urwid.AttrWrap(urwid.Text('+'), None)
+        self.unexpanded_icon.attr = 'body'
+        self.unexpanded_icon.focus_attr = 'focus'
+
+        self.leaf_icon = urwid.AttrWrap(urwid.Text(' '), None)
+        self.leaf_icon.attr = 'body'
+        self.leaf_icon.focus_attr = 'focus'
+
         self.__super.__init__(node)
 
         self._w = urwid.AttrWrap(self._w, None)
         self._w.attr = 'body'
         self._w.focus_attr = 'focus'
 
-        self.expanded_icon = urwid.AttrWrap(self.expanded_icon, None)
-        self.expanded_icon.attr = 'body'
-        self.expanded_icon.focus_attr = 'focus'
-
-        self.unexpanded_icon = urwid.AttrWrap(self.unexpanded_icon, None)
-        self.unexpanded_icon.attr = 'body'
-        self.unexpanded_icon.focus_attr = 'focus'
-
         self.expanded = False
 
     def get_indented_widget(self):
         self.popup_widget = TaskPopUpLauncher(self.task)
         indent_cols = self.get_indent_cols()
+
+        self.is_branch = True if self.first_child() else False
+
+        if self.is_branch:
+            icon = [self.expanded_icon, self.unexpanded_icon][self.expanded]
+        else:
+            icon = self.leaf_icon
+
         return urwid.Columns(
             [
                 (42, urwid.Padding(
                     urwid.Columns(
                         [
-                            (2, [self.unexpanded_icon, self.expanded_icon][self.expanded]),
+                            (2, icon),
                             self.popup_widget
                         ]
                     ),
@@ -60,7 +72,10 @@ class TaskWidget(urwid.TreeWidget):
         return key
 
     def unhandled_keys(self, size, key):
-        if key == "enter":
+        if key == 'enter' and self.is_branch:
+            self.expanded = not self.expanded
+            self.update_expanded_icon()
+        elif key in ('d', 'D'):
             self.popup_widget.open_pop_up()
         elif key in ('c', 'C'):
             self.task.cancel()
