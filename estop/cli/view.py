@@ -20,6 +20,7 @@ PALETTE = [
     ('mode_none', 'white', 'black'),
     ('mode_play', 'white', 'dark green'),
     ('mode_pause', 'white', 'dark red'),
+    ('refresh', 'yellow', 'dark blue'),
     ('focus', 'yellow', 'dark blue'),
     ('field_title', 'yellow', 'black'),
     ('field_value', 'light gray', 'black'),
@@ -32,7 +33,6 @@ PALETTE = [
 class View:
     def __init__(self, controller):
         self.controller = controller
-        self.refresh_time = 1
 
         self.__init_widgets()
 
@@ -72,6 +72,8 @@ class View:
             [
                 ('key', "P to Play/Pause"),
                 ' | ',
+                ('key', "R to refresh"),
+                ' | ',
                 ('key', "Enter to Fold/Unfold"),
                 ' | ',
                 ('key', "D to detail"),
@@ -82,19 +84,36 @@ class View:
             ]
         )
 
+        self.txt_refresh = urwid.Text('', align='right')
+
+        self.col_footer = urwid.Columns(
+            [
+                self.txt_footer,
+                (12, urwid.AttrWrap(self.txt_refresh, 'refresh'))
+            ]
+        )
+
         # frame content
         self.frm_main = urwid.Frame(
             urwid.AttrWrap(self.fil_body, 'body'),
             header=urwid.AttrWrap(self.col_header, 'head'),
-            footer=urwid.AttrWrap(self.txt_footer, 'footer')
+            footer=urwid.AttrWrap(self.col_footer, 'footer')
         )
         self.view = self.frm_main
 
     def unhandled_input(self, k):
-        if k in ('p', 'P'):
+        if k in ('p', 'P', 'f4'):
             self.controller.play_pause()
-        elif k in ('q', 'Q'):
+        elif k in ('q', 'Q', 'f10'):
             self.controller.quit()
+        elif k == 'f2':
+            self.controller.dec_refresh_time()
+            self.refresh()
+        elif k == 'f3':
+            self.controller.inc_refresh_time()
+            self.refresh()
+        elif k in ['r', 'f5']:
+            self.controller.refresh()
 
     def set_mode(self, mode):
         if mode == MODE_PLAY:
@@ -106,6 +125,8 @@ class View:
 
     def refresh(self):
         conn = self.controller.connector
+
+        self.txt_refresh.set_text('Refresh {0}s'.format(self.controller.refresh_time))
 
         self.txt_cluster_name.set_text(conn.cluster_name)
 

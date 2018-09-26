@@ -19,9 +19,18 @@ def main():
         help='Elasticsearch endpoint'
     )
 
+    parser.add_argument(
+        '-r', '--refresh',
+        action='store',
+        dest='refresh',
+        type=int,
+        default=2,
+        help='Refresh time'
+    )
+
     args = parser.parse_args()
 
-    controller = Controller(args.endpoint)
+    controller = Controller(args.endpoint, args.refresh)
     controller.main()
 
 

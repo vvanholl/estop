@@ -5,8 +5,11 @@ from estop.cli.view import View, PALETTE, MODE_PLAY, MODE_PAUSE
 
 
 class Controller:
-    def __init__(self, endpoint):
+    def __init__(self, endpoint, refresh_time):
         self.connector = Connector(endpoint)
+
+        self.set_refresh_time(refresh_time)
+
         self.view = View(self)
 
         self.play_alarm = None
@@ -35,10 +38,26 @@ class Controller:
             self.play_function()
 
     def play_function(self, loop=None, user_data=None):
+        self.refresh()
+        self.play_alarm = self.loop.set_alarm_in(self.refresh_time, self.play_function)
+
+    def refresh(self):
         self.connector.fetch_cluster_info()
         self.connector.fetch_cluster_health()
         self.connector.fetch_nodes()
         self.connector.fetch_tasks()
 
         self.view.refresh()
-        self.play_alarm = self.loop.set_alarm_in(self.view.refresh_time, self.play_function)
+
+    def set_refresh_time(self, refresh_time):
+        if refresh_time < 1:
+            refresh_time = 1
+        elif refresh_time > 60:
+            refresh_time = 60
+        self.refresh_time = refresh_time
+
+    def inc_refresh_time(self):
+        self.set_refresh_time(self.refresh_time + 1)
+
+    def dec_refresh_time(self):
+        self.set_refresh_time(self.refresh_time - 1)
