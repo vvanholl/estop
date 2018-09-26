@@ -2,6 +2,7 @@ import time
 import urwid
 
 from estop.cli.popup import TaskPopUpLauncher
+from estop.cli.message import MessageLauncher
 
 
 class TaskWidget(urwid.TreeWidget):
@@ -31,6 +32,8 @@ class TaskWidget(urwid.TreeWidget):
 
     def get_indented_widget(self):
         self.popup_widget = TaskPopUpLauncher(self.task)
+        self.message_widget = MessageLauncher()
+
         indent_cols = self.get_indent_cols()
 
         self.is_branch = True if self.first_child() else False
@@ -45,7 +48,8 @@ class TaskWidget(urwid.TreeWidget):
                 (42, urwid.Padding(
                     urwid.Columns(
                         [
-                            (2, icon),
+                            (1, icon),
+                            (1, self.message_widget),
                             self.popup_widget
                         ]
                     ),
@@ -54,7 +58,7 @@ class TaskWidget(urwid.TreeWidget):
                 ('weight', 4, urwid.Text(self.task.action)),
                 ('weight', 3, urwid.Text(self.task.node.name)),
                 (20, urwid.Text(time.strftime("%Y-%m-%d %H:%M:%S", self.task.start_time))),
-                (14, urwid.Text("{0:8.2f}ms".format(self.task.running_time_ms)))
+                (14, urwid.Text("{0:8.2f}ms".format(self.task.running_time_ms))),
             ]
         )
 
@@ -78,7 +82,14 @@ class TaskWidget(urwid.TreeWidget):
         elif key in ('d', 'D'):
             self.popup_widget.open_pop_up()
         elif key in ('c', 'C'):
-            self.task.cancel()
+            if self.task.cancellable:
+                try:
+                    self.task.cancel()
+                    self.message_widget.open('info', 'Sent cancel order to task')
+                except Exception as e:
+                    self.message_widget.open('error', e)
+            else:
+                self.message_widget.open('warning', 'Task is not cancellable')
         else:
             return key
 

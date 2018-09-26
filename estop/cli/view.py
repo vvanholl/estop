@@ -23,6 +23,9 @@ PALETTE = [
     ('focus', 'yellow', 'dark blue'),
     ('field_title', 'yellow', 'black'),
     ('field_value', 'light gray', 'black'),
+    ('message_info', 'white', 'dark green'),
+    ('message_warning', 'white', 'brown'),
+    ('message_error', 'white', 'dark red'),
 ]
 
 
