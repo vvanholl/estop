@@ -85,7 +85,7 @@ class TaskWidget(urwid.TreeWidget):
             if self.task.cancellable:
                 try:
                     self.task.cancel()
-                    self.message_widget.open('info', 'Sent cancel order to task')
+                    self.message_widget.open('info', 'Successfully sent cancel action to task')
                 except Exception as e:
                     self.message_widget.open('error', e)
             else:
