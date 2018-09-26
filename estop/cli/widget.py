@@ -76,12 +76,12 @@ class TaskWidget(urwid.TreeWidget):
         return key
 
     def unhandled_keys(self, size, key):
-        if key == 'enter' and self.is_branch:
+        if key in ['f6', 'enter'] and self.is_branch:
             self.expanded = not self.expanded
             self.update_expanded_icon()
-        elif key in ('d', 'D'):
+        elif key in ['f7', 'd', 'D']:
             self.popup_widget.open_pop_up()
-        elif key in ('c', 'C'):
+        elif key in ['f8', 'c', 'C']:
             if self.task.cancellable:
                 try:
                     self.task.cancel()

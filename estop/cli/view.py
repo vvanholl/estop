@@ -1,5 +1,6 @@
 import urwid
 
+from estop.cli.help import HelpLauncher
 from estop.cli.node import RootNode
 
 MODE_PAUSE = 0
@@ -41,6 +42,7 @@ class View:
     def __init_widgets(self):
         # header content
         self.txt_title = urwid.Text(('title', 'ESTop'))
+        self.help_widget = HelpLauncher(self.txt_title)
 
         self.txt_mode = urwid.Text('', align='center')
         self.map_mode = urwid.AttrMap(self.txt_mode, 'mode_none')
@@ -54,7 +56,7 @@ class View:
 
         self.col_header = urwid.Columns(
             [
-                (6, self.txt_title),
+                (6, self.help_widget),
                 (10, self.map_mode),
                 self.txt_cluster_name,
                 (10, self.txt_cluster_version),
@@ -70,9 +72,9 @@ class View:
         # footer content
         self.txt_footer = urwid.Text(
             [
-                ('key', "P to Play/Pause"),
+                ('key', "H for Help"),
                 ' | ',
-                ('key', "R to refresh"),
+                ('key', "P to Play/Pause"),
                 ' | ',
                 ('key', "Enter to Fold/Unfold"),
                 ' | ',
@@ -102,18 +104,20 @@ class View:
         self.view = self.frm_main
 
     def unhandled_input(self, k):
-        if k in ('p', 'P', 'f4'):
-            self.controller.play_pause()
-        elif k in ('q', 'Q', 'f10'):
-            self.controller.quit()
+        if k in ['f1', 'h', 'H']:
+            self.help_widget.open()
         elif k == 'f2':
             self.controller.dec_refresh_time()
             self.refresh()
         elif k == 'f3':
             self.controller.inc_refresh_time()
             self.refresh()
-        elif k in ['r', 'f5']:
+        elif k in ['f4', 'p', 'P']:
+            self.controller.play_pause()
+        elif k in ['f5', 'r', 'R']:
             self.controller.refresh()
+        elif k in ['f10', 'q', 'Q']:
+            self.controller.quit()
 
     def set_mode(self, mode):
         if mode == MODE_PLAY:
