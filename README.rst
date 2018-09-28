@@ -26,8 +26,6 @@ Usage
 
   ``estop``
 
-or
+  or
 
   ``estop -e <endpoint> -r <refresh_time>``
-
-
