@@ -25,3 +25,9 @@ Usage
 * To start ESTop, just type the command :
 
   ``estop``
+
+or
+
+  ``estop -e <endpoint> -r <refresh_time>``
+
+
