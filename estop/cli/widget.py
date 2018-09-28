@@ -109,3 +109,6 @@ class RootWidget(urwid.TreeWidget):
                 (14, urwid.Text(('column_header', 'Elapsed'), align='center'))
             ]
         )
+
+    def selectable(self):
+        return False
