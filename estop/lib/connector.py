@@ -1,4 +1,6 @@
 import requests
+from threading import Thread
+import time
 
 from estop.lib.node import Node
 from estop.lib.task import RootTask
@@ -14,6 +16,7 @@ class Connector:
         self.number_of_nodes = 0
         self.nodes = {}
         self.task_tree = None
+        self.is_consummed = True
 
     def __get_data(self, path=''):
         url = "{0}/{1}".format(self.endpoint, path)
@@ -59,3 +62,59 @@ class Connector:
             self.task_tree = RootTask(self, data.get('tasks'))
         except Exception as e:
             raise Exception("Could not fetch cluster tasks from endpoint={0} ({1})".format(self.endpoint, e))
+
+    def refresh(self, components):
+        if 'cluster' in components or 'all' in components:
+            self.fetch_cluster_info()
+            self.fetch_cluster_health()
+
+        if 'nodes' in components or 'all' in components:
+            self.fetch_nodes()
+
+        if 'tasks' in components or 'all' in components:
+            self.fetch_tasks()
+
+        self.is_consummed = False
+
+    def consumme(self):
+        if self.is_consummed:
+            return None
+        else:
+            self.is_consummed = True
+            return self
+
+
+class ConnectorRefreshThread(Thread):
+    def __init__(self, connector, refresh_time):
+        Thread.__init__(self)
+        self.connector = connector
+        self.refresh_time = refresh_time
+        self.is_paused = False
+
+    def run(self):
+        refresh_count = 0
+        while True:
+            if not self.is_paused:
+                if refresh_count % 5 == 0 or self.refresh_time > 30:
+                    self.connector.refresh(['all'])
+                else:
+                    self.connector.refresh(['tasks'])
+                refresh_count = refresh_count + 1
+                time.sleep(self.refresh_time)
+
+    def set_refresh_time(self, refresh_time):
+        if refresh_time < 1:
+            self.refresh_time = 1
+        elif refresh_time > 60:
+            self.refresh_time = 60
+        else:
+            self.refresh_time = refresh_time
+
+    def inc_refresh_time(self):
+        self.set_refresh_time(self.refresh_time + 1)
+
+    def dec_refresh_time(self):
+        self.set_refresh_time(self.refresh_time - 1)
+
+    def pause(self):
+        self.is_paused = not self.is_paused

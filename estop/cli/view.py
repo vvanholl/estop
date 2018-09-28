@@ -37,8 +37,6 @@ class View:
 
         self.__init_widgets()
 
-        self.set_mode(MODE_PAUSE)
-
     def __init_widgets(self):
         # header content
         self.txt_title = urwid.Text(('title', 'ESTop'))
@@ -107,38 +105,40 @@ class View:
         if k in ['f1', 'h', 'H']:
             self.help_widget.open()
         elif k == 'f2':
-            self.controller.dec_refresh_time()
+            self.controller.connector_refresh_thread.dec_refresh_time()
             self.refresh()
         elif k == 'f3':
-            self.controller.inc_refresh_time()
+            self.controller.connector_refresh_thread.inc_refresh_time()
             self.refresh()
         elif k in ['f4', 'p', 'P']:
-            self.controller.play_pause()
+            self.controller.connector_refresh_thread.pause()
         elif k in ['f5', 'r', 'R']:
-            self.controller.refresh()
+            self.controller.connector.refresh(['all'])
         elif k in ['f10', 'q', 'Q']:
             self.controller.quit()
 
-    def set_mode(self, mode):
-        if mode == MODE_PLAY:
-            self.txt_mode.set_text('PLAY')
-            self.map_mode.set_attr_map({None: 'mode_play'})
-        elif mode == MODE_PAUSE:
+    def refresh(self):
+        self.txt_refresh.set_text('Refresh {0}s'.format(self.controller.connector_refresh_thread.refresh_time))
+
+        if self.controller.connector_refresh_thread.is_paused:
             self.txt_mode.set_text('PAUSE')
             self.map_mode.set_attr_map({None: 'mode_pause'})
+        else:
+            self.txt_mode.set_text('PLAY')
+            self.map_mode.set_attr_map({None: 'mode_play'})
 
-    def refresh(self):
-        conn = self.controller.connector
+        conn = self.controller.connector.consumme()
+        if conn:
+            self.txt_cluster_name.set_text(conn.cluster_name)
 
-        self.txt_refresh.set_text('Refresh {0}s'.format(self.controller.refresh_time))
+            self.txt_cluster_status.set_text(conn.cluster_status)
+            self.map_cluster_status.set_attr_map({None: 'cluster_' + conn.cluster_status})
 
-        self.txt_cluster_name.set_text(conn.cluster_name)
+            self.txt_cluster_nodes.set_text("{0} nodes".format(conn.number_of_nodes))
 
-        self.txt_cluster_status.set_text(conn.cluster_status)
-        self.map_cluster_status.set_attr_map({None: 'cluster_' + conn.cluster_status})
-
-        self.txt_cluster_nodes.set_text("{0} nodes".format(conn.number_of_nodes))
-
-        content = urwid.TreeWalker(RootNode(self.controller))
-        body = urwid.TreeListBox(content)
-        self.frm_main.contents['body'] = (urwid.AttrWrap(body, 'body'), None)
+            if self.controller.connector.task_tree:
+                content = urwid.TreeWalker(RootNode(self.controller))
+                body = urwid.TreeListBox(content)
+                self.frm_main.contents['body'] = (urwid.AttrWrap(body, 'body'), None)
+            else:
+                self.frm_main.contents['body'] = (urwid.AttrWrap(self.fil_body, 'body'), None)

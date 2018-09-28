@@ -24,7 +24,7 @@ def main():
         action='store',
         dest='refresh',
         type=int,
-        default=2,
+        default=5,
         help='Refresh time'
     )
 
