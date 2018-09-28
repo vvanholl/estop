@@ -1,5 +1,5 @@
 import requests
-from threading import Thread
+from threading import Event, Thread
 import time
 
 from estop.lib.node import Node
@@ -88,33 +88,44 @@ class ConnectorRefreshThread(Thread):
     def __init__(self, connector, refresh_time):
         Thread.__init__(self)
         self.connector = connector
-        self.refresh_time = refresh_time
-        self.is_paused = False
+        self._is_paused = False
+        self._stopevent = Event()
+        self._sleepperiod = refresh_time
 
     def run(self):
         refresh_count = 0
-        while True:
-            if not self.is_paused:
-                if refresh_count % 5 == 0 or self.refresh_time > 30:
+        while not self._stopevent.isSet():
+            if not self._is_paused:
+                if refresh_count % 5 == 0 or self._sleepperiod > 30:
                     self.connector.refresh(['all'])
                 else:
                     self.connector.refresh(['tasks'])
                 refresh_count = refresh_count + 1
-                time.sleep(self.refresh_time)
+                self._stopevent.wait(self._sleepperiod)
+
+    def join(self, timeout=None):
+        self._stopevent.set()
+        Thread.join(self, timeout)
+
+    def get_refresh_time(self):
+        return self._sleepperiod
 
     def set_refresh_time(self, refresh_time):
         if refresh_time < 1:
-            self.refresh_time = 1
+            self._sleepperiod = 1
         elif refresh_time > 60:
-            self.refresh_time = 60
+            self._sleepperiod = 60
         else:
-            self.refresh_time = refresh_time
+            self._sleepperiod = refresh_time
 
     def inc_refresh_time(self):
-        self.set_refresh_time(self.refresh_time + 1)
+        self.set_refresh_time(self._sleepperiod + 1)
 
     def dec_refresh_time(self):
-        self.set_refresh_time(self.refresh_time - 1)
+        self.set_refresh_time(self._sleepperiod - 1)
+
+    def is_paused(self):
+        return self._is_paused
 
     def pause(self):
-        self.is_paused = not self.is_paused
+        self._is_paused = not self._is_paused

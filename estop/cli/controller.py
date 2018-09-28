@@ -26,6 +26,7 @@ class Controller:
         self.loop.run()
 
     def quit(self):
+        self.connector_refresh_thread.join()
         raise urwid.ExitMainLoop()
 
     def play_function(self, loop=None, user_data=None):

@@ -118,9 +118,9 @@ class View:
             self.controller.quit()
 
     def refresh(self):
-        self.txt_refresh.set_text('Refresh {0}s'.format(self.controller.connector_refresh_thread.refresh_time))
+        self.txt_refresh.set_text('Refresh {0}s'.format(self.controller.connector_refresh_thread.get_refresh_time()))
 
-        if self.controller.connector_refresh_thread.is_paused:
+        if self.controller.connector_refresh_thread.is_paused():
             self.txt_mode.set_text('PAUSE')
             self.map_mode.set_attr_map({None: 'mode_pause'})
         else:
