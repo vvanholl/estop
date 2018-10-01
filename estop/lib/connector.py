@@ -1,6 +1,5 @@
 import requests
 from threading import Event, Thread
-import time
 
 from estop.lib.node import Node
 from estop.lib.task import RootTask
@@ -16,12 +15,14 @@ class Connector:
         self.number_of_nodes = 0
         self.nodes = {}
         self.task_tree = None
-        self.is_consummed = True
+        self._timeout = 30
+        self._consummed = True
+        self._error = None
 
     def __get_data(self, path=''):
         url = "{0}/{1}".format(self.endpoint, path)
-        r = requests.get(url)
 
+        r = requests.get(url, timeout=self._timeout)
         if r.status_code == 200:
             try:
                 return r.json()
@@ -64,24 +65,34 @@ class Connector:
             raise Exception("Could not fetch cluster tasks from endpoint={0} ({1})".format(self.endpoint, e))
 
     def refresh(self, components):
-        if 'cluster' in components or 'all' in components:
-            self.fetch_cluster_info()
-            self.fetch_cluster_health()
+        try:
+            if 'cluster' in components or 'all' in components:
+                self.fetch_cluster_info()
+                self.fetch_cluster_health()
+            if 'nodes' in components or 'all' in components:
+                self.fetch_nodes()
+            if 'tasks' in components or 'all' in components:
+                self.fetch_tasks()
+            self._error = None
+        except Exception as e:
+            self._error = e
+        self._consummed = False
 
-        if 'nodes' in components or 'all' in components:
-            self.fetch_nodes()
+    def get_error(self):
+        return self._error
 
-        if 'tasks' in components or 'all' in components:
-            self.fetch_tasks()
-
-        self.is_consummed = False
+    def is_error(self):
+        return True if self._error else False
 
     def consumme(self):
-        if self.is_consummed:
+        if self._consummed:
             return None
         else:
-            self.is_consummed = True
+            self._consummed = True
             return self
+
+    def set_timeout(self, timeout):
+        self._timeout = timeout
 
 
 class ConnectorRefreshThread(Thread):
@@ -96,6 +107,7 @@ class ConnectorRefreshThread(Thread):
         refresh_count = 0
         while not self._stopevent.isSet():
             if not self._is_paused:
+                self.connector.set_timeout(self._sleepperiod)
                 if refresh_count % 5 == 0 or self._sleepperiod > 30:
                     self.connector.refresh(['all'])
                 else:

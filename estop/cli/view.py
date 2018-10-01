@@ -136,9 +136,10 @@ class View:
 
             self.txt_cluster_nodes.set_text("{0} nodes".format(conn.number_of_nodes))
 
-            if self.controller.connector.task_tree:
+            if not conn.is_error():
                 content = urwid.TreeWalker(RootNode(self.controller))
                 body = urwid.TreeListBox(content)
                 self.frm_main.contents['body'] = (urwid.AttrWrap(body, 'body'), None)
             else:
+                self.txt_body.set_text("Error: {0}".format(conn.get_error()))
                 self.frm_main.contents['body'] = (urwid.AttrWrap(self.fil_body, 'body'), None)
